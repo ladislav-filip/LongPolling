@@ -1,0 +1,50 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">SignalR</h1>
+    
+    @* <script src="https://unpkg.com/@@aspnet/signalr@@1.0.0-rc1-final/dist/browser/signalr.js"></script> *@
+    <script src="https://unpkg.com/@@microsoft/signalr@5.0.5/dist/browser/signalr.js"></script>
+    <div class="signalr-demo">
+        <form id="message-form">
+            <input type="text" id="message-box"/>
+        </form>
+        <hr />
+        <ul id="messages"></ul>
+    </div>
+    
+    <script>
+        const messageForm =  document.getElementById('message-form');
+        const messageBox = document.getElementById('message-box');
+        const messages = document.getElementById('messages');
+        
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("https://localhost:5001/notify")
+            .configureLogging(signalR.LogLevel.Information)
+            .build();
+            
+        connection.on('message', (sender, messageText) => {
+            console.log(`${sender}:${messageText}`);
+            
+            const newMessage = document.createElement('li');
+            newMessage.appendChild(document.createTextNode(`${sender}:${messageText}`));
+            messages.appendChild(newMessage);
+        });
+        
+        connection.start()
+            .then(() => console.log('connected!'))
+            .catch(console.error);
+            
+        messageForm.addEventListener('submit', ev => {
+            ev.preventDefault();
+            const message = messageBox.value;
+            connection.invoke('SendMessage', message);
+            messageBox.value = '';
+        });
+    </script>
+    
+</div>
