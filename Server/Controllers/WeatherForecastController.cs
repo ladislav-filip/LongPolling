@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
-using Server.Infratructure;
 
 namespace Server.Controllers
 {
@@ -36,25 +33,6 @@ namespace Server.Controllers
                     Summary = Summaries[rng.Next(Summaries.Length)]
                 })
                 .ToArray();
-        }
-    }
-
-    [ApiController]
-    [Route("[controller]")]
-    public class SendController : ControllerBase
-    {
-        private readonly IHubContext<NotifyHub> _notifyHub;
-
-        public SendController(IHubContext<NotifyHub> notifyHub)
-        {
-            _notifyHub = notifyHub;
-        }
-        
-        [HttpPost]
-        public async Task<IActionResult> Send(string message)
-        {
-            await _notifyHub.Clients.All.SendAsync(method: "message", "anonymous", message);
-            return Ok();
         }
     }
 }

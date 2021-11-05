@@ -1,0 +1,75 @@
+﻿@page
+@model Client.Pages.ClientBeta
+
+
+<div class="text-center">
+    <h1 class="display-4">Client Beta</h1>
+    
+    <p>
+        Ukázka jak implementovat automatický reconnect po výpadku připojení.
+        <br/>
+        <a href="https://docs.microsoft.com/cs-cz/aspnet/core/signalr/javascript-client?view=aspnetcore-5.0">Dokumentace</a>
+    </p>
+    
+    <div class="signalr-demo">
+        <ul id="messages"></ul>
+    </div>
+    
+    <script>
+    
+    const messages = document.getElementById('messages');
+    
+    class ClientBeta {
+        
+        constructor() {    
+            this.receive("client", "Start...");
+            this.connection = new signalR.HubConnectionBuilder()
+                .withUrl(
+                    "https://localhost:5001/notify",
+                    { 
+                        transport: signalR.HttpTransportType.LongPolling 
+                    }
+                )
+                .withAutomaticReconnect()
+                .configureLogging(signalR.LogLevel.Information)
+                .build();
+            
+            this.connection.on("message", this.receive);
+            this.connection.onreconnecting(this.onReconnect);
+        }
+    
+        async start() {
+            console.log("Start hub listening...");
+            await this.connection.start()
+                .then(() => console.log('connected!'))
+                .catch(this.fallbackConnected);
+        }
+        
+        receive(sender, messageText) {
+            console.log(messageText);    
+            const newMessage = document.createElement('li');
+            newMessage.appendChild(document.createTextNode(`${sender}:${messageText}`));
+            messages.appendChild(newMessage);
+        }
+        
+        async fallbackConnected(reason) {
+            console.log("fallbackConnected...");
+            console.error(reason);
+            // setTimeout(startHub, 500);
+        }
+        
+        async onReconnect(error) {
+            console.log("reconnect...");
+            const newMessage = document.createElement('li');
+            newMessage.appendChild(document.createTextNode(`${error}`));
+            messages.appendChild(newMessage);
+        }
+        
+    }
+    
+    const client = new ClientBeta();
+    client.start();
+    
+    </script>
+
+</div>
