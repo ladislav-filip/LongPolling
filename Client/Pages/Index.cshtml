@@ -22,8 +22,15 @@
         const messageBox = document.getElementById('message-box');
         const messages = document.getElementById('messages');
         
+        let startHub;
+        
         const connection = new signalR.HubConnectionBuilder()
-            .withUrl("https://localhost:5001/notify")
+            .withUrl(
+                "https://localhost:5001/notify",
+                { 
+                    transport: signalR.HttpTransportType.LongPolling 
+                }
+            )
             .configureLogging(signalR.LogLevel.Information)
             .build();
             
@@ -35,9 +42,23 @@
             messages.appendChild(newMessage);
         });
         
-        connection.start()
-            .then(() => console.log('connected!'))
-            .catch(console.error);
+        connection.onclose(async () => {
+            console.log("Close connection.");
+            await startHub();
+        });
+        
+        async function fallbackConnected(reason) {
+            console.log("fallbackConnected...");
+            console.error(reason);
+            setTimeout(startHub, 500);
+        }
+        
+        startHub = async function () {    
+            console.log("Start hub listening...");
+            await connection.start()
+                .then(() => console.log('connected!'))
+                .catch(fallbackConnected);
+        }
             
         messageForm.addEventListener('submit', ev => {
             ev.preventDefault();
@@ -45,6 +66,9 @@
             connection.invoke('SendMessage', message);
             messageBox.value = '';
         });
+        
+        startHub();
+        
     </script>
     
 </div>
