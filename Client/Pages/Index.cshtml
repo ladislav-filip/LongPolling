@@ -26,7 +26,7 @@
             .withUrl(
                 "https://localhost:5001/notify",
                 { 
-                    transport: signalR.HttpTransportType.LongPolling 
+                    transport: signalR.HttpTransportType.WebSockets 
                 }
             )
             .configureLogging(signalR.LogLevel.Information)

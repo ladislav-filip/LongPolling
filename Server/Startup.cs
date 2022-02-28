@@ -31,7 +31,11 @@ namespace Server
             services.AddCors(options =>
                 options.AddDefaultPolicy(builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
             
-            services.AddSignalR();
+            services.AddSignalR(opt =>
+            {
+                opt.ClientTimeoutInterval = TimeSpan.FromMinutes(30);
+                opt.HandshakeTimeout = TimeSpan.FromMinutes(15);
+            });
             services.AddControllers();
             services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo { Title = "Server", Version = "v1" }); });
         }
@@ -62,7 +66,7 @@ namespace Server
             {
                 endpoints.MapHub<NotifyHub>("/notify", options =>
                 {
-                    options.Transports = HttpTransportType.LongPolling;
+                    options.Transports = HttpTransportType.LongPolling | HttpTransportType.WebSockets;
                 });
                 endpoints.MapControllers();
             });
